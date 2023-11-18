@@ -127,6 +127,7 @@ unsigned int engine_go_where(void)
     unsigned int temp;
     float left_distance = 0.0;
     float right_distance = 0.0;
+    float mid_distance=0.0;
     /* 舵机往左转动测量左边障碍物的距离 */
 
     EngineTurnLeft(car_drive.leftangle);
@@ -139,6 +140,7 @@ unsigned int engine_go_where(void)
     RegressMiddle(car_drive.middangle);
     hi_sleep(200);
     // TaskMsleep(200); // 200ms
+    mid_distance=GetDistance();
 
     /* 舵机往右转动测量右边障碍物的距离 */
     EngineTurnRight(car_drive.rightangle);
@@ -150,6 +152,7 @@ unsigned int engine_go_where(void)
     /* 归中 */
     RegressMiddle(car_drive.middangle);
 
+    printf("left:%f mid:%f right:%f\n",left_distance,mid_distance,right_distance);
     if (left_distance > right_distance) {
         temp =  CAR_TURN_LEFT;
     } else {
@@ -189,7 +192,18 @@ void car_where_to_go(float distance)
 }
 
 /* 超声波避障 */
-void ultrasonic(void)
+void ultrasonic(void)//转头，输出周围距离
+{
+    // float m_distance = 0.0;
+    // /* 获取前方物体的距离 */
+    // m_distance = GetDistance();
+    uint32_t t=engine_go_where();
+    printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
+    // car_where_to_go(m_distance);
+    // TaskMsleep(20); // 20ms执行一次
+    return;
+}
+void ultrasonic_direct(void)//不转头，直接输出距离
 {
     float m_distance = 0.0;
     /* 获取前方物体的距离 */

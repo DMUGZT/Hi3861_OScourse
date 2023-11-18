@@ -90,29 +90,29 @@ void Sg92RTask(void)
     while (1) {
         /* 舵机归中 Steering gear centering */
         RegressMiddle();
-        TaskMsleep(time);
+        hi_sleep(time);
 
         /*
          * 舵机左转90度
          * Steering gear turns 90 degrees to the left
          */
         EngineTurnLeft();
-        TaskMsleep(time);
+        hi_sleep(time);
 
         /* 舵机归中 Steering gear centering */
         RegressMiddle();
-        TaskMsleep(time);
+        hi_sleep(time);
 
         /*
          * 舵机右转90度
          * Steering gear turns right 90 degrees
          */
         EngineTurnRight();
-        TaskMsleep(time);
+        hi_sleep(time);
 
         /* 舵机归中 Steering gear centering */
         RegressMiddle();
-        TaskMsleep(time);
+        hi_sleep(time);
     }
 }
 
