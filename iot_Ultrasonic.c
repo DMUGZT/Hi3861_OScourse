@@ -129,6 +129,7 @@ unsigned int engine_go_where(void)
     float right_distance = 0.0;
     float mid_distance=0.0;
     /* 舵机往左转动测量左边障碍物的距离 */
+    S92RInit();
 
     EngineTurnLeft(car_drive.leftangle);
     hi_sleep(200);
@@ -166,30 +167,30 @@ unsigned int engine_go_where(void)
  * 1、距离大于等于15cm继续前进
  * 2、距离小于15cm，先停止再后退0.1s,继续进行测距,再进行判断
  */
-void car_where_to_go(float distance)
-{
-    if (distance < car_drive.distance) {
-        car_backward(car_drive.LeftForward, car_drive.RightForward);
-        hi_sleep(500);
-        // TaskMsleep(500); // 后退500ms
-        car_stop();
-        unsigned int ret = engine_go_where();
-        if (ret == CAR_TURN_LEFT) {
-            while ((GetYaw() - yaw_data) < car_drive.yaw) {
-                Lsm_Get_RawAcc();
-                car_left(car_drive.TurnRight);
-            }
-        } else if (ret == CAR_TURN_RIGHT) {
-            while ((yaw_data - GetYaw()) < car_drive.yaw) {
-                Lsm_Get_RawAcc();
-                car_right(car_drive.TurnLeft);
-            }
-        }
-    } else {
-        car_forward(car_drive.LeftForward, car_drive.RightForward);
-    }
-    yaw_data = GetYaw();
-}
+// void car_where_to_go(float distance)
+// {
+//     if (distance < car_drive.distance) {
+//         car_backward(car_drive.LeftForward, car_drive.RightForward);
+//         hi_sleep(500);
+//         // TaskMsleep(500); // 后退500ms
+//         car_stop();
+//         unsigned int ret = engine_go_where();
+//         if (ret == CAR_TURN_LEFT) {
+//             while ((GetYaw() - yaw_data) < car_drive.yaw) {
+//                 Lsm_Get_RawAcc();
+//                 car_left(car_drive.TurnRight);
+//             }
+//         } else if (ret == CAR_TURN_RIGHT) {
+//             while ((yaw_data - GetYaw()) < car_drive.yaw) {
+//                 Lsm_Get_RawAcc();
+//                 car_right(car_drive.TurnLeft);
+//             }
+//         }
+//     } else {
+//         car_forward(car_drive.LeftForward, car_drive.RightForward);
+//     }
+//     yaw_data = GetYaw();
+// }
 
 /* 超声波避障 */
 void ultrasonic(void)//转头，输出周围距离
