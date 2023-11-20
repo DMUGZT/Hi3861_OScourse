@@ -122,12 +122,14 @@ float GetDistance  (void)
     distance = time * pi / l;
     return distance;
 }
+
+float left_distance = 0.0;
+float right_distance = 0.0;
+float mid_distance=0.0;
 unsigned int engine_go_where(void)
 {
     unsigned int temp;
-    float left_distance = 0.0;
-    float right_distance = 0.0;
-    float mid_distance=0.0;
+
     /* 舵机往左转动测量左边障碍物的距离 */
     S92RInit();
 

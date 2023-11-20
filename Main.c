@@ -61,9 +61,10 @@ osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg)
 }
 int cnt=0;
 osThreadId_t tid_GY25,tid_Ultrasonic;
+uint16_t YAW,PITCH,ROLL;
 void Thread_GY25()
 {
-    uint16_t YAW,PITCH,ROLL;
+    
     while(1)
     {
         static uint8_t k=0,readbuf[8]={0};
