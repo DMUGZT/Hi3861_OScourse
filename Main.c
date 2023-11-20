@@ -95,6 +95,7 @@ void Thread_GY25()
     }
 }
 // extern void ultrasonic();
+
 void Thread_Ultrasonic()
 {
     while(1)
