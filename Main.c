@@ -11,6 +11,7 @@
 #include "hi_uart.h"
 #include "iot_watchdog.h"
 #include "iot_errno.h"
+#include "hcsr04.h"
 
 #define UART_BUFF_SIZE 100
 #define U_SLEEP_TIME   100000
@@ -77,10 +78,11 @@ void Thread_GY25()
         {
             if(readbuf[7]==0x55)
             {
-                YAW=(readbuf[1]<<8|readbuf[2]);
-                PITCH=(readbuf[3]<<8|readbuf[4]);
-                ROLL=(readbuf[5]<<8|readbuf[6]);
-                printf("count:%d Y:%d P:%d R:%d\n",cnt++,YAW/100,PITCH/100,ROLL/100);
+                YAW=(readbuf[1]<<8|readbuf[2])/100;
+                PITCH=(readbuf[3]<<8|readbuf[4])/100;
+                ROLL=(readbuf[5]<<8|readbuf[6])/100;
+                if(YAW>180)YAW-=360;
+                printf("count:%d Y:%d P:%d R:%d\n",cnt++,YAW,PITCH,ROLL);
                 // hi_sleep(10);
             }
         }
@@ -88,9 +90,19 @@ void Thread_GY25()
         osThreadYield();
     }
 }
-
 void Thread_Ultrasonic()
 {
+    while(1)
+    {
+        ultrasonic();//返回的是左中右的距离,调用一次获取一次
+        osThreadYield();
+    }
+}
+extern CAR_DRIVE car_drive ;
+void Thread_Ultrasonic_direct()
+{
+    RegressMiddle(car_drive.middangle);
+    hi_sleep(200);
     while(1)
     {
         ultrasonic_direct();//返回的是前方的距离,调用一次获取一次
@@ -99,11 +111,7 @@ void Thread_Ultrasonic()
 }
 void Thread_Control()
 {
-    while(1)
-    {
-        control();
-        osThreadYield();
-    }
+    control();
 }
 
 static void Task(void)
@@ -123,10 +131,12 @@ static void Task(void)
     // printf("Thread Count:%d",osThreadGetCount());
     // printf("Thread Enumerate Count:%d",osThreadEnumerate());
     // osDelay(500);
-    status1=osThreadTerminate(tid_GY25);
-    printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
-    status2=osThreadTerminate(tid_Ultrasonic);
-    printf("[Ultrasonic thread]osThreadTerminate, status2: %d.\r\n", status2);
+    // status1=osThreadTerminate(tid_GY25);
+    // printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
+    // status2=osThreadTerminate(tid_Ultrasonic);
+    // printf("[Ultrasonic thread]osThreadTerminate, status2: %d.\r\n", status2);
+    // status3=osThreadTerminate(tid_Control);
+    // printf("[Control Thread]osThreadTerminate, status2: %d.\r\n", status3);
     printf("线程结束");
 }
 

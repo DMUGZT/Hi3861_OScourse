@@ -201,7 +201,7 @@ void ultrasonic(void)//转头，输出周围距离
     // /* 获取前方物体的距离 */
     // m_distance = GetDistance();
     uint32_t t=engine_go_where();
-    printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
+    // printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
     // car_where_to_go(m_distance);
     // TaskMsleep(20); // 20ms执行一次
     return;
@@ -210,6 +210,7 @@ float m_distance = 0.0;
 void ultrasonic_direct(void)//不转头，直接输出距离
 {
     /* 获取前方物体的距离 */
+
     m_distance = GetDistance();
     printf("\t\tdistance:%f\n",m_distance);
     // car_where_to_go(m_distance);
