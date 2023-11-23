@@ -126,6 +126,7 @@ float GetDistance  (void)
 float left_distance = 0.0;
 float right_distance = 0.0;
 float mid_distance=0.0;
+float m_distance = 0.0;
 unsigned int engine_go_where(void)
 {
     unsigned int temp;
@@ -162,6 +163,22 @@ unsigned int engine_go_where(void)
         temp =  CAR_TURN_RIGHT;
     }
     return temp;
+}
+float get_left()
+{
+    return left_distance;
+}
+float get_mid()
+{
+    return mid_distance;
+}
+float get_right()
+{
+    return right_distance;
+}
+float get_m()
+{
+    return m_distance;
 }
 
 /*
@@ -206,7 +223,7 @@ void ultrasonic(void)//转头，输出周围距离
     // TaskMsleep(20); // 20ms执行一次
     return;
 }
-float m_distance = 0.0;
+
 void ultrasonic_direct(void)//不转头，直接输出距离
 {
     /* 获取前方物体的距离 */

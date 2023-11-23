@@ -1,5 +1,5 @@
 #include<stdbool.h>
-
+#include<stdio.h>
 #include "ohos_init.h"
 #include "cmsis_os2.h"
 #include "iot_gpio.h"
@@ -15,12 +15,8 @@
 #define GPIOFUNC 0
 #define TASK_STAK_SIZE    (1024*10)
 
-extern float left_distance;
-extern float mid_distance;
-extern float right_distance;
-extern float m_distance;
 
-extern uint16_t YAW;
+
 
 extern osThreadId_t tid_Ultrasonic;
 
@@ -44,9 +40,9 @@ void car_forward(void)
 {
     printf("car forward");
     gpio_control(GPIO0, IOT_GPIO_VALUE1);
-    gpio_control(GPIO1, IOT_GPIO_VALUE0);
+    gpio_control(GPIO1, IOT_GPIO_VALUE0);//10左轮前转
     gpio_control(GPIO9, IOT_GPIO_VALUE0);
-    gpio_control(GPIO10, IOT_GPIO_VALUE1);
+    gpio_control(GPIO10, IOT_GPIO_VALUE1);//01右轮前转
 }
 
 void car_left(void)
@@ -76,30 +72,30 @@ void car_stop(void)
     gpio_control(GPIO10, IOT_GPIO_VALUE1);
 }
 
-void car_reverse(void)
+void car_reverse(void)//如何掉头？
 {
     printf ("car reverse");
-    gpio_control(GPIO0, IOT_GPIO_VALUE1);
-    gpio_control(GPIO1, IOT_GPIO_VALUE0);
+    gpio_control(GPIO0, IOT_GPIO_VALUE0);
+    gpio_control(GPIO1, IOT_GPIO_VALUE1);
     gpio_control(GPIO9, IOT_GPIO_VALUE1);
     gpio_control(GPIO10, IOT_GPIO_VALUE0);
 }
 
 void waiting_distance(float temp){
-    int angle = YAW;
-    while(m_distance - temp >= 50){
-        if(angle - YAW >= 15) car_right();
-        else if(angle - YAW <= -15) car_left();
+    int angle = get_YAW();
+    while(get_m() - temp >= 50){
+        if(angle - get_YAW() >= 15) car_right();
+        else if(angle - get_YAW() <= -15) car_left();
         else car_forward();
     }
 }
 
 void waiting_degree_180(int temp){
-    while(abs(YAW - temp) <= 180);
+    while(abs(get_YAW() - temp) <= 180);
 }
 
 void waiting_degree(int temp){
-    while(abs(YAW - temp) <= 90);
+    while(abs(get_YAW() - temp) <= 90);
 }
 extern void Thread_Ultrasonic_direct();
 extern void Thread_Ultrasonic();
@@ -107,13 +103,17 @@ extern osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg);
 
 void one_direct_distance()
 {
-    osThreadTerminate(tid_Ultrasonic);
+    printf("thread id : %d",tid_Ultrasonic);
+    osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
+    printf("status:%d\n",status1);
     tid_Ultrasonic=newThread("Ultrasonic Threaed",
         Thread_Ultrasonic_direct,"Ultrasonic thread");
 }
 void three_direct_distance()
 {
-    osThreadTerminate(tid_Ultrasonic);
+    printf("thread id : %d",tid_Ultrasonic);
+    osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
+    printf("status:%d\n",status1);
     tid_Ultrasonic=newThread("Ultrasonic Threaed",
         Thread_Ultrasonic,"Ultrasonic thread");
 }
@@ -122,11 +122,20 @@ void three_direct_distance()
 
 
 void control(){
-
+    float left_distance;
+    float mid_distance;
+    float right_distance;
+    float m_distance;
+    uint16_t YAW;
     while(true){
+        
         bool left = true;
         bool forward = true;
         bool right = true;
+        left_distance=get_left();
+        mid_distance=get_mid();
+        right_distance=get_right();
+        printf("left:%f mid:%f right:%f",left_distance,mid_distance,right_distance);
 
         //把float类型距离转化成布尔类型的值
         if(left_distance < 15) left = false;
@@ -139,17 +148,17 @@ void control(){
             //转弯操作分为两个步骤：1原地转 2向前一个单位
             //先进行转向
             car_left();
-            int temp = YAW;
+            int temp = get_YAW();
             waiting_degree(temp);
             //再向前一个单位
             car_forward();
-            temp = m_distance;
+            temp = get_m();
             waiting_distance(temp);
             car_stop(); 
         }
         else if(forward == true){
             car_forward();
-            float temp = m_distance;
+            float temp = get_m();
             waiting_distance(temp);
             car_stop();
         }
@@ -157,19 +166,20 @@ void control(){
             //转弯操作分为两个步骤：1原地转 2向前一个单位
             //先进行转向
             car_right();
-            int temp = YAW;
+            int temp = get_YAW();
             waiting_degree(temp);
             //再向前一个单位
             car_forward();
-            temp = m_distance;
+            temp = get_m();
             waiting_distance(temp);
             car_stop();
         }
         else{
             car_reverse();
-            int temp1 = YAW;
+            int temp1 = get_YAW();
+            printf("YAW:%d",get_YAW());
             waiting_degree_180(temp1);
-            float temp = m_distance;
+            float temp = get_m();
             waiting_distance(temp);
             car_stop();
         }

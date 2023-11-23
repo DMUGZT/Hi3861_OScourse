@@ -90,6 +90,10 @@ void Thread_GY25()
         osThreadYield();
     }
 }
+uint16_t get_YAW()
+{
+    return YAW;
+}
 void Thread_Ultrasonic()
 {
     while(1)
@@ -109,10 +113,10 @@ void Thread_Ultrasonic_direct()
         osThreadYield();
     }
 }
-void Thread_Control()
-{
-    control();
-}
+// void Thread_Control()
+// {
+//     control();
+// }
 
 static void Task(void)
 {
@@ -127,10 +131,12 @@ static void Task(void)
 
     tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
     tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
-    tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
+    control();
+    // tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
     // printf("Thread Count:%d",osThreadGetCount());
     // printf("Thread Enumerate Count:%d",osThreadEnumerate());
     // osDelay(500);
+    osDelay(10000000);
     // status1=osThreadTerminate(tid_GY25);
     // printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
     // status2=osThreadTerminate(tid_Ultrasonic);
