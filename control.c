@@ -103,17 +103,25 @@ extern osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg);
 
 void one_direct_distance()
 {
-    printf("thread id : %d",tid_Ultrasonic);
-    osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
-    printf("status:%d\n",status1);
+    if(tid_Ultrasonic!=0)
+    {
+        printf("thread id : %d",tid_Ultrasonic);
+        osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
+        printf("status:%d\n",status1);
+    }
+
     tid_Ultrasonic=newThread("Ultrasonic Threaed",
         Thread_Ultrasonic_direct,"Ultrasonic thread");
 }
 void three_direct_distance()
 {
-    printf("thread id : %d",tid_Ultrasonic);
-    osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
-    printf("status:%d\n",status1);
+    if(tid_Ultrasonic!=0)
+    {
+        printf("thread id : %d",tid_Ultrasonic);
+        osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
+        printf("status:%d\n",status1);
+    }
+
     tid_Ultrasonic=newThread("Ultrasonic Threaed",
         Thread_Ultrasonic,"Ultrasonic thread");
 }

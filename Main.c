@@ -13,40 +13,10 @@
 #include "iot_errno.h"
 #include "hcsr04.h"
 
-#define UART_BUFF_SIZE 100
-#define U_SLEEP_TIME   100000
-#define THREAD_NUM (1000)
+
 #define STACK_SIZE (1024)
-#define DELAY_TICKS_20   (20)
-#define DELAY_TICKS_100 (100)
 
-void Uart2GpioInit(void)
-{
-    IoTGpioInit(IOT_IO_NAME_GPIO_11);
-    // 设置GPIO11的管脚复用关系为UART2_TX Set the pin reuse relationship of GPIO0 to UART1_ TX
-    IoSetFunc(IOT_IO_NAME_GPIO_11, IOT_IO_FUNC_GPIO_11_UART2_TXD);
-    IoTGpioInit(IOT_IO_NAME_GPIO_12);
-    // 设置GPIO12的管脚复用关系为UART2_RX Set the pin reuse relationship of GPIO1 to UART1_ RX
-    IoSetFunc(IOT_IO_NAME_GPIO_12, IOT_IO_FUNC_GPIO_12_UART2_RXD);
-}
-void Uart2Config(void)
-{
-    uint32_t ret;
-    /* 初始化UART配置，波特率 115200，数据bit为8,停止位1，奇偶校验为NONE */
-    /* Initialize UART configuration, baud rate is 9600, data bit is 8, stop bit is 1, parity is NONE */
-    IotUartAttribute uart_attr = {
-        .baudRate = 115200,
-        .dataBits = 8,
-        .stopBits = 1,
-        .parity = 0,
-    };
-    ret = IoTUartInit(HI_UART_IDX_2, &uart_attr);
-    if (ret != IOT_SUCCESS) {
-        printf("Init Uart2 Falied Error No : %d\n", ret);
-        return;
-    }
-}
-
+osThreadId_t tid_GY25,tid_Ultrasonic,tid_Control;
 osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg)
 {
     osThreadAttr_t attr = {
@@ -59,40 +29,6 @@ osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg)
         printf("[Thread Test] osThreadNew(%s) success, thread id: %d.\r\n", name, tid);
     }
     return tid;
-}
-int cnt=0;
-osThreadId_t tid_GY25,tid_Ultrasonic,tid_Control;
-uint16_t YAW,PITCH,ROLL;
-void Thread_GY25()
-{
-    while(1)
-    {
-        static uint8_t k=0,readbuf[8]={0};
-        k=IoTUartRead(HI_UART_IDX_2,readbuf,UART_BUFF_SIZE);
-        if(readbuf[0]!=0xaa)
-        {
-            k=0;
-            memset(readbuf,0,sizeof(uint8_t)*8);
-        }
-        if(k==8)
-        {
-            if(readbuf[7]==0x55)
-            {
-                YAW=(readbuf[1]<<8|readbuf[2])/100;
-                PITCH=(readbuf[3]<<8|readbuf[4])/100;
-                ROLL=(readbuf[5]<<8|readbuf[6])/100;
-                if(YAW>180)YAW-=360;
-                printf("count:%d Y:%d P:%d R:%d\n",cnt++,YAW,PITCH,ROLL);
-                // hi_sleep(10);
-            }
-        }
-        k=0;
-        osThreadYield();
-    }
-}
-uint16_t get_YAW()
-{
-    return YAW;
 }
 void Thread_Ultrasonic()
 {
@@ -122,15 +58,13 @@ static void Task(void)
 {
     uint32_t count = 0;
     uint32_t len = 0;
-    unsigned char uartReadBuff[UART_BUFF_SIZE] = {0};
-    // 对UART2的一些初始化
-    Uart2GpioInit();
-    // 对UART2参数的一些配置
-    Uart2Config();
+
+
     int status1,status2,status3;
 
-    tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
-    tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
+    // tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
+
+    // tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
     control();
     // tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
     // printf("Thread Count:%d",osThreadGetCount());

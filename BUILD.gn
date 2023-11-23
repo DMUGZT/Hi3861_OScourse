@@ -17,7 +17,8 @@ static_library("GY25Test") {
     "hal_iot_gpio_ex.c",
     "iot_Ultrasonic.c",
     "sg92r_control.c",
-    "control.c"
+    "control.c",
+    "GY25.c"
   ]
 
   include_dirs = [
