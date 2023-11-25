@@ -45,9 +45,9 @@ void car_forward(void)
 {
     printf("1car forward");
     gpio_control(GPIO0, IOT_GPIO_VALUE1);
-    gpio_control(GPIO1, IOT_GPIO_VALUE0);//10左轮前转
-    gpio_control(GPIO9, IOT_GPIO_VALUE0);
-    gpio_control(GPIO10, IOT_GPIO_VALUE1);//01右轮前转
+    gpio_control(GPIO1, IOT_GPIO_VALUE0);
+    gpio_control(GPIO9, IOT_GPIO_VALUE1);
+    gpio_control(GPIO10, IOT_GPIO_VALUE0);
 }
 
 void car_left(void)
@@ -55,8 +55,8 @@ void car_left(void)
     printf("1car turn left");
     gpio_control(GPIO0, IOT_GPIO_VALUE0);
     gpio_control(GPIO1, IOT_GPIO_VALUE0);
-    gpio_control(GPIO9, IOT_GPIO_VALUE0);
-    gpio_control(GPIO10, IOT_GPIO_VALUE1);
+    gpio_control(GPIO9, IOT_GPIO_VALUE1);
+    gpio_control(GPIO10, IOT_GPIO_VALUE0);
 }
 
 void car_right(void)
@@ -77,7 +77,7 @@ void car_stop(void)
     gpio_control(GPIO10, IOT_GPIO_VALUE1);
 }
 
-void car_reverse(void)//如何掉头？
+void car_reverse(void)
 {
     printf ("1car reverse");
     gpio_control(GPIO0, IOT_GPIO_VALUE0);
@@ -88,10 +88,22 @@ void car_reverse(void)//如何掉头？
 
 void waiting_distance(float temp){
     int angle = get_YAW();
-    while(temp - get_m()<= 50){//前进50cm
-        printf("\t\t\t\t\tOrigin dis:%f cur dis:%f dif:%f\n",temp,get_m(),temp-get_m());
-        if(angle - YAW >= 15) car_right(),osDelay(10);
-        else if(angle - YAW <= -15) car_left(),osDelay(10);
+    int dif_l=0,dif_r=0;
+    while(temp - m_distance<= 50){//前进50cm
+        printf("\t\t\t\t\tOrigin dis:%f cur dis:%f dif:%f\n",temp,m_distance,temp-m_distance);
+        dif_l=0;
+        dif_r=0;
+        // printf("\t\t\t\t\t[wdistance]:angle:%d,YAW:%d\n",angle,YAW);
+        if(angle-YAW>0)dif_r=abs(angle-YAW);
+        // else dif_l=abs(angle-YAW-360);
+        dif_l=abs(angle-YAW-360);
+        dif_l=dif_l>=360?dif_l-360:dif_l;
+        if(dif_l>30)dif_l=0;
+        if(dif_r>30)dif_r=0;
+        // dif_r=abs(angle-YAW);
+        printf("\t\t\t\t\tdif_left:%d dif_right:%d\n",dif_l,dif_r);
+        if(dif_l >= 15) car_right(),osDelay(10);
+        else if(dif_r >= 15) car_left(),osDelay(10);
         else car_forward();
     }
 }
@@ -143,7 +155,7 @@ void waiting_degree_right(int temp){
 extern void Thread_Ultrasonic_direct();
 extern void Thread_Ultrasonic();
 extern osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg);
-
+extern bool thread_ready;
 void one_direct_distance()
 {
     if(tid_Ultrasonic!=0)
@@ -155,6 +167,15 @@ void one_direct_distance()
 
     tid_Ultrasonic=newThread("Ultrasonic Threaed",
         Thread_Ultrasonic_direct,"Ultrasonic thread");
+    
+}
+void waiting()
+{
+    while(1)
+    {
+        printf("ready?:%s\n",thread_ready==true?"true":"false");
+        if(thread_ready==true)break;
+    }
 }
 void three_direct_distance()
 {
@@ -171,10 +192,11 @@ void three_direct_distance()
 
 
 int times=0;
+bool flag=false;
 void control(){
 
     while(true){
-        
+        thread_ready=false;
         bool left = true;
         bool forward = true;
         bool right = true;
@@ -187,11 +209,14 @@ void control(){
         printf("left:%f mid:%f right:%f",left_distance,mid_distance,right_distance);
 
         //把float类型距离转化成布尔类型的值
-        if(left_distance < 20) left = false;
-        if(mid_distance < 20) forward = false;
-        if(right_distance < 20) right = false;
-
+        if(left_distance < 10) left = false;
+        if(mid_distance < 10) forward = false;
+        if(right_distance < 10) right = false;
+        
         one_direct_distance();
+        waiting();
+        // if(!flag)
+        // hi_sleep(3),flag=true;
         //打开只读前方距离
         if(left == true){
             printf("[times:%d]enter left!\n",times);
@@ -209,9 +234,9 @@ void control(){
         }
         else if(forward == true){
             printf("[times:%d]enter forward!\n",times);
-            car_forward();
-            float temp = get_m();
+            float temp = m_distance;
             printf("cur distance:%f",temp);
+            car_forward();
             waiting_distance(temp);
             car_stop();
         }
