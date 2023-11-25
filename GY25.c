@@ -73,14 +73,19 @@ void Thread_GY25()
                 YAW=(readbuf[1]<<8|readbuf[2])/100;
                 PITCH=(readbuf[3]<<8|readbuf[4])/100;
                 ROLL=(readbuf[5]<<8|readbuf[6])/100;
-                if(YAW>180)YAW-=360;
-                printf("count:%d Y:%d P:%d R:%d\n",cnt++,YAW,PITCH,ROLL);
+                // int t=YAW;
+                if(YAW>180)YAW=YAW-295;
+                // if(PITCH>180)PITCH=PITCH-295;
+                // if(ROLL>180)ROLL=ROLL-295;
+                // if(YAW>180)YAW-=360;
+                printf("(AF)count:%d Y:%d P:%d R:%d\n",cnt++,YAW,PITCH,ROLL);
+                // printf("\t\t\t(AF)count:%d Y:%d P:%d R:%d\n",cnt++,t,PITCH,ROLL);
                 // hi_sleep(10);
             }
         }
         k=0;
-        
     }
+    osThreadYield();
 }
 uint16_t get_YAW()
 {
@@ -97,7 +102,7 @@ void Entry_GY(void)
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
     attr.stack_size = 5 * 1024; // 任务栈大小*1024 stack size 5*1024
-    attr.priority = osPriorityNormal+2;
+    attr.priority = osPriorityNormal;
 
     if (osThreadNew((osThreadFunc_t)Thread_GY25, NULL, &attr) == NULL) {
         printf("[Task] Failed to create Thread_GY25!\n");

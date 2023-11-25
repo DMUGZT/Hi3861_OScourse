@@ -16,6 +16,11 @@
 #define TASK_STAK_SIZE    (1024*10)
 
 
+extern float left_distance;
+extern float mid_distance;
+extern float right_distance;
+extern float m_distance;
+extern uint16_t YAW;
 
 
 extern osThreadId_t tid_Ultrasonic;
@@ -38,7 +43,7 @@ void car_backward(void)
 
 void car_forward(void)
 {
-    printf("car forward");
+    printf("1car forward");
     gpio_control(GPIO0, IOT_GPIO_VALUE1);
     gpio_control(GPIO1, IOT_GPIO_VALUE0);//10左轮前转
     gpio_control(GPIO9, IOT_GPIO_VALUE0);
@@ -47,7 +52,7 @@ void car_forward(void)
 
 void car_left(void)
 {
-    printf("car turn left");
+    printf("1car turn left");
     gpio_control(GPIO0, IOT_GPIO_VALUE0);
     gpio_control(GPIO1, IOT_GPIO_VALUE0);
     gpio_control(GPIO9, IOT_GPIO_VALUE0);
@@ -56,7 +61,7 @@ void car_left(void)
 
 void car_right(void)
 {
-    printf("car turn right");
+    printf("1car turn right");
     gpio_control(GPIO0, IOT_GPIO_VALUE1);
     gpio_control(GPIO1, IOT_GPIO_VALUE0);
     gpio_control(GPIO9, IOT_GPIO_VALUE0);
@@ -65,7 +70,7 @@ void car_right(void)
 
 void car_stop(void)
 {
-    printf ("car stop");
+    printf ("1car stop");
     gpio_control(GPIO0, IOT_GPIO_VALUE1);
     gpio_control(GPIO1, IOT_GPIO_VALUE1);
     gpio_control(GPIO9, IOT_GPIO_VALUE1);
@@ -74,7 +79,7 @@ void car_stop(void)
 
 void car_reverse(void)//如何掉头？
 {
-    printf ("car reverse");
+    printf ("1car reverse");
     gpio_control(GPIO0, IOT_GPIO_VALUE0);
     gpio_control(GPIO1, IOT_GPIO_VALUE1);
     gpio_control(GPIO9, IOT_GPIO_VALUE1);
@@ -83,19 +88,57 @@ void car_reverse(void)//如何掉头？
 
 void waiting_distance(float temp){
     int angle = get_YAW();
-    while(get_m() - temp >= 50){
-        if(angle - get_YAW() >= 15) car_right();
-        else if(angle - get_YAW() <= -15) car_left();
+    while(temp - get_m()<= 50){//前进50cm
+        printf("\t\t\t\t\tOrigin dis:%f cur dis:%f dif:%f\n",temp,get_m(),temp-get_m());
+        if(angle - YAW >= 15) car_right(),osDelay(10);
+        else if(angle - YAW <= -15) car_left(),osDelay(10);
         else car_forward();
     }
 }
 
 void waiting_degree_180(int temp){
-    while(abs(get_YAW() - temp) <= 180);
+    int dif=0;
+    do
+    {
+        dif=abs(temp-YAW-360);
+        if(dif>=360)
+        {
+            dif-=360;
+        }
+        printf("\t\t\t\tOrigin:%d After:%d dif:%d\n",temp,YAW,dif);
+    }
+    while(dif <= 180);
 }
 
 void waiting_degree(int temp){
-    while(abs(get_YAW() - temp) <= 90);
+    int dif=0;
+    do
+    {
+        dif=abs(temp-YAW-360);
+        
+        // printf("\t\t\t\t",dif);
+        if(dif>=360)
+        {
+            dif-=360;
+        }
+        printf("\t\t\t\tOrigin:%d After:%d dif:%d\n",temp,YAW,dif);
+    }
+    while(dif <= 90);
+}
+void waiting_degree_right(int temp){
+    int dif=0;
+    do
+    {
+        dif=abs(temp-YAW);
+        
+        // printf("\t\t\t\t",dif);
+        // if(dif>=360)
+        // {
+        //     dif-=360;
+        // }
+        printf("\t\t\t\tOrigin:%d After:%d dif:%d\n",temp,YAW,dif);
+    }
+    while(dif <= 90);
 }
 extern void Thread_Ultrasonic_direct();
 extern void Thread_Ultrasonic();
@@ -127,32 +170,31 @@ void three_direct_distance()
 }
 
 
-
-
+int times=0;
 void control(){
-    float left_distance;
-    float mid_distance;
-    float right_distance;
-    float m_distance;
-    uint16_t YAW;
+
     while(true){
         
         bool left = true;
         bool forward = true;
         bool right = true;
-        left_distance=get_left();
-        mid_distance=get_mid();
-        right_distance=get_right();
+        ultrasonic();
+        // left_distance=get_left();
+        // mid_distance=get_mid();
+        // right_distance=get_right();
+        osDelay(5);
+    
         printf("left:%f mid:%f right:%f",left_distance,mid_distance,right_distance);
 
         //把float类型距离转化成布尔类型的值
-        if(left_distance < 15) left = false;
-        if(mid_distance < 15) forward = false;
-        if(right_distance < 15) right = false;
+        if(left_distance < 20) left = false;
+        if(mid_distance < 20) forward = false;
+        if(right_distance < 20) right = false;
 
         one_direct_distance();
         //打开只读前方距离
         if(left == true){
+            printf("[times:%d]enter left!\n",times);
             //转弯操作分为两个步骤：1原地转 2向前一个单位
             //先进行转向
             car_left();
@@ -161,37 +203,46 @@ void control(){
             //再向前一个单位
             car_forward();
             temp = get_m();
+            printf("cur distance:%f",temp);
             waiting_distance(temp);
             car_stop(); 
         }
         else if(forward == true){
+            printf("[times:%d]enter forward!\n",times);
             car_forward();
             float temp = get_m();
+            printf("cur distance:%f",temp);
             waiting_distance(temp);
             car_stop();
         }
         else if(right == true){
             //转弯操作分为两个步骤：1原地转 2向前一个单位
+            printf("[times:%d]enter right!\n",times);
             //先进行转向
             car_right();
             int temp = get_YAW();
-            waiting_degree(temp);
+            waiting_degree_right(temp);
             //再向前一个单位
             car_forward();
             temp = get_m();
+            printf("cur distance:%f",temp);
             waiting_distance(temp);
             car_stop();
         }
         else{
+            printf("[times:%d]enter reserve!\n",times);
             car_reverse();
             int temp1 = get_YAW();
             printf("YAW:%d",get_YAW());
             waiting_degree_180(temp1);
             float temp = get_m();
+            printf("cur distance:%f",temp);
             waiting_distance(temp);
             car_stop();
         }
-        three_direct_distance();//终止只读前方并启动读取三方距离
+        times++;
+        osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
+        // three_direct_distance();//终止只读前方并启动读取三方距离
     }
 }
 

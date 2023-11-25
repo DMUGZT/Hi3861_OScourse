@@ -94,7 +94,7 @@ void Entry(void)
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
     attr.stack_size = 5 * 1024; // 任务栈大小*1024 stack size 5*1024
-    attr.priority = osPriorityNormal+2;
+    attr.priority = osPriorityNormal;
 
     if (osThreadNew((osThreadFunc_t)Task, NULL, &attr) == NULL) {
         printf("[Task] Failed to create Task!\n");
