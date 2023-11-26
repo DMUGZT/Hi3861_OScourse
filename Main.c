@@ -11,41 +11,12 @@
 #include "hi_uart.h"
 #include "iot_watchdog.h"
 #include "iot_errno.h"
+#include "hcsr04.h"
 
-#define UART_BUFF_SIZE 100
-#define U_SLEEP_TIME   100000
-#define THREAD_NUM (1000)
+
 #define STACK_SIZE (1024)
-#define DELAY_TICKS_20   (20)
-#define DELAY_TICKS_100 (100)
 
-void Uart2GpioInit(void)
-{
-    IoTGpioInit(IOT_IO_NAME_GPIO_11);
-    // 设置GPIO11的管脚复用关系为UART2_TX Set the pin reuse relationship of GPIO0 to UART1_ TX
-    IoSetFunc(IOT_IO_NAME_GPIO_11, IOT_IO_FUNC_GPIO_11_UART2_TXD);
-    IoTGpioInit(IOT_IO_NAME_GPIO_12);
-    // 设置GPIO12的管脚复用关系为UART2_RX Set the pin reuse relationship of GPIO1 to UART1_ RX
-    IoSetFunc(IOT_IO_NAME_GPIO_12, IOT_IO_FUNC_GPIO_12_UART2_RXD);
-}
-void Uart2Config(void)
-{
-    uint32_t ret;
-    /* 初始化UART配置，波特率 115200，数据bit为8,停止位1，奇偶校验为NONE */
-    /* Initialize UART configuration, baud rate is 9600, data bit is 8, stop bit is 1, parity is NONE */
-    IotUartAttribute uart_attr = {
-        .baudRate = 115200,
-        .dataBits = 8,
-        .stopBits = 1,
-        .parity = 0,
-    };
-    ret = IoTUartInit(HI_UART_IDX_2, &uart_attr);
-    if (ret != IOT_SUCCESS) {
-        printf("Init Uart2 Falied Error No : %d\n", ret);
-        return;
-    }
-}
-
+osThreadId_t tid_GY25,tid_Ultrasonic,tid_Control;
 osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg)
 {
     osThreadAttr_t attr = {
@@ -59,74 +30,53 @@ osThreadId_t newThread(char *name, osThreadFunc_t func, char *arg)
     }
     return tid;
 }
-int cnt=0;
-osThreadId_t tid_GY25,tid_Ultrasonic,tid_Control;
-uint16_t YAW,PITCH,ROLL;
-void Thread_GY25()
+void Thread_Ultrasonic()
 {
     while(1)
     {
-        static uint8_t k=0,readbuf[8]={0};
-        k=IoTUartRead(HI_UART_IDX_2,readbuf,UART_BUFF_SIZE);
-        if(readbuf[0]!=0xaa)
-        {
-            k=0;
-            memset(readbuf,0,sizeof(uint8_t)*8);
-        }
-        if(k==8)
-        {
-            if(readbuf[7]==0x55)
-            {
-                YAW=(readbuf[1]<<8|readbuf[2]);
-                PITCH=(readbuf[3]<<8|readbuf[4]);
-                ROLL=(readbuf[5]<<8|readbuf[6]);
-                printf("count:%d Y:%d P:%d R:%d\n",cnt++,YAW/100,PITCH/100,ROLL/100);
-                // hi_sleep(10);
-            }
-        }
-        k=0;
+        ultrasonic();//返回的是左中右的距离,调用一次获取一次
         osThreadYield();
     }
 }
-
-void Thread_Ultrasonic()
+extern CAR_DRIVE car_drive ;
+void Thread_Ultrasonic_direct()
 {
+    RegressMiddle(car_drive.middangle);
+    hi_sleep(200);
     while(1)
     {
         ultrasonic_direct();//返回的是前方的距离,调用一次获取一次
         osThreadYield();
     }
 }
-void Thread_Control()
-{
-    while(1)
-    {
-        control();
-        osThreadYield();
-    }
-}
+// void Thread_Control()
+// {
+//     control();
+// }
 
 static void Task(void)
 {
     uint32_t count = 0;
     uint32_t len = 0;
-    unsigned char uartReadBuff[UART_BUFF_SIZE] = {0};
-    // 对UART2的一些初始化
-    Uart2GpioInit();
-    // 对UART2参数的一些配置
-    Uart2Config();
+
+
     int status1,status2,status3;
 
-    tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
-    tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
-    tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
+    // tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
+
+    // tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
+    control();
+    // tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
     // printf("Thread Count:%d",osThreadGetCount());
     // printf("Thread Enumerate Count:%d",osThreadEnumerate());
     // osDelay(500);
-    status1=osThreadTerminate(tid_GY25);
-    printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
-    status2=osThreadTerminate(tid_Ultrasonic);
-    printf("[Ultrasonic thread]osThreadTerminate, status2: %d.\r\n", status2);
+    osDelay(10000000);
+    // status1=osThreadTerminate(tid_GY25);
+    // printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
+    // status2=osThreadTerminate(tid_Ultrasonic);
+    // printf("[Ultrasonic thread]osThreadTerminate, status2: %d.\r\n", status2);
+    // status3=osThreadTerminate(tid_Control);
+    // printf("[Control Thread]osThreadTerminate, status2: %d.\r\n", status3);
     printf("线程结束");
 }
 
@@ -144,7 +94,7 @@ void Entry(void)
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
     attr.stack_size = 5 * 1024; // 任务栈大小*1024 stack size 5*1024
-    attr.priority = osPriorityNormal+2;
+    attr.priority = osPriorityNormal;
 
     if (osThreadNew((osThreadFunc_t)Task, NULL, &attr) == NULL) {
         printf("[Task] Failed to create Task!\n");

@@ -8,6 +8,7 @@
 #include "iot_errno.h"
 #include "hcsr04.h"
 #include "iot_gpio_ex.h"
+#include <stdbool.h>
 
 CAR_DRIVE car_drive = { 0 };
 // typedef struct {
@@ -126,6 +127,7 @@ float GetDistance  (void)
 float left_distance = 0.0;
 float right_distance = 0.0;
 float mid_distance=0.0;
+float m_distance = 0.0;
 unsigned int engine_go_where(void)
 {
     unsigned int temp;
@@ -162,6 +164,22 @@ unsigned int engine_go_where(void)
         temp =  CAR_TURN_RIGHT;
     }
     return temp;
+}
+float get_left()
+{
+    return left_distance;
+}
+float get_mid()
+{
+    return mid_distance;
+}
+float get_right()
+{
+    return right_distance;
+}
+float get_m()
+{
+    return m_distance;
 }
 
 /*
@@ -201,18 +219,21 @@ void ultrasonic(void)//转头，输出周围距离
     // /* 获取前方物体的距离 */
     // m_distance = GetDistance();
     uint32_t t=engine_go_where();
-    printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
+    // printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
     // car_where_to_go(m_distance);
     // TaskMsleep(20); // 20ms执行一次
     return;
 }
-float m_distance = 0.0;
+bool thread_ready=false;
 void ultrasonic_direct(void)//不转头，直接输出距离
 {
     /* 获取前方物体的距离 */
+
     m_distance = GetDistance();
     printf("\t\tdistance:%f\n",m_distance);
+    thread_ready=true;
     // car_where_to_go(m_distance);
     // TaskMsleep(20); // 20ms执行一次
     return;
 }
+
