@@ -98,8 +98,9 @@ void waiting_distance(float temp){
         // else dif_l=abs(angle-YAW-360);
         dif_l=abs(angle-YAW-360);
         dif_l=dif_l>=360?dif_l-360:dif_l;
-        if(dif_l>30)dif_l=0;
-        if(dif_r>30)dif_r=0;
+        if(dif_l>45)dif_l=0;
+        if(dif_r>45)dif_r=0;
+        //-15----15之间为正常，-45----15&&15----45之间回正
         // dif_r=abs(angle-YAW);
         printf("\t\t\t\t\tdif_left:%d dif_right:%d\n",dif_l,dif_r);
         if(dif_l >= 15) car_right(),osDelay(10);
