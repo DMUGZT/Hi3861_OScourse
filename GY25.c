@@ -73,14 +73,8 @@ void Thread_GY25()
                 YAW=(readbuf[1]<<8|readbuf[2])/100;
                 PITCH=(readbuf[3]<<8|readbuf[4])/100;
                 ROLL=(readbuf[5]<<8|readbuf[6])/100;
-                // int t=YAW;
                 if(YAW>180)YAW=YAW-295;
-                // if(PITCH>180)PITCH=PITCH-295;
-                // if(ROLL>180)ROLL=ROLL-295;
-                // if(YAW>180)YAW-=360;
                 printf("(AF)count:%d Y:%d P:%d R:%d\n",cnt++,YAW,PITCH,ROLL);
-                // printf("\t\t\t(AF)count:%d Y:%d P:%d R:%d\n",cnt++,t,PITCH,ROLL);
-                // hi_sleep(10);
             }
         }
         k=0;

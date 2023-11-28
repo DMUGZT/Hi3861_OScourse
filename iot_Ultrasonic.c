@@ -52,43 +52,6 @@ float yaw_data = 0.0f;
 #define CAR_TURN_LEFT                     (0)
 #define CAR_TURN_RIGHT                    (1)
 
-// float GetDistance(void)
-// {
-//     // 定义变量
-//     static unsigned long start_time = 0, time = 0;
-//     float distance = 0.0;
-//     IotGpioValue value = IOT_GPIO_VALUE0;
-//     unsigned int flag = 0;
-
-//     // 设置GPIO7输出低电平
-//     /* 给trig发送至少10us的高电平脉冲，以触发传感器测距 */
-//     IoTGpioSetOutputVal(IOT_IO_NAME_GPIO_7, IOT_GPIO_VALUE1);
-//     // 20us延时函数（设置高电平持续时间）
-//     hi_udelay(20);
-//     // 设置GPIO7输出高电平
-//     IoTGpioSetOutputVal(IOT_IO_NAME_GPIO_7, IOT_GPIO_VALUE0);
-//     /* 计算与障碍物之间的距离 */
-//     while (1) {
-//         // 获取GPIO8的输入电平状态
-//         IoTGpioGetInputVal(IOT_IO_NAME_GPIO_8, &value);
-//         // 判断GPIO8的输入电平是否为高电平并且flag为0
-//         if (value == IOT_GPIO_VALUE1 && flag == 0) {
-//             // 获取系统时间
-//             start_time = hi_get_us();
-//             // 将flag设置为1
-//             flag = 1;
-//         }
-//         // 判断GPIO8的输入电平是否为低电平并且flag为1
-//         if (value == IOT_GPIO_VALUE0 && flag == 1) {
-//             // 获取高电平持续时间
-//             time = hi_get_us() - start_time;
-//             break;
-//         }
-//     }
-//     // 计算距离障碍物距离（340米/秒 转换为 0.034厘米/微秒），一去一来2倍距离
-//     distance = time * 0.034 / 2;
-//     return distance;
-// }
 float GetDistance  (void)
 {
     static unsigned long start_time = 0, time = 0;
@@ -215,13 +178,7 @@ float get_m()
 /* 超声波避障 */
 void ultrasonic(void)//转头，输出周围距离
 {
-    // float m_distance = 0.0;
-    // /* 获取前方物体的距离 */
-    // m_distance = GetDistance();
     uint32_t t=engine_go_where();
-    // printf("Go to : %s \n",t==0?"LEFT":"RIGHT");
-    // car_where_to_go(m_distance);
-    // TaskMsleep(20); // 20ms执行一次
     return;
 }
 bool thread_ready=false;
@@ -232,8 +189,6 @@ void ultrasonic_direct(void)//不转头，直接输出距离
     m_distance = GetDistance();
     printf("\t\tdistance:%f\n",m_distance);
     thread_ready=true;
-    // car_where_to_go(m_distance);
-    // TaskMsleep(20); // 20ms执行一次
     return;
 }
 
