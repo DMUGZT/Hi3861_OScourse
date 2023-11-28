@@ -93,15 +93,12 @@ void waiting_distance(float temp){
         printf("\t\t\t\t\tOrigin dis:%f cur dis:%f dif:%f\n",temp,m_distance,temp-m_distance);
         dif_l=0;
         dif_r=0;
-        // printf("\t\t\t\t\t[wdistance]:angle:%d,YAW:%d\n",angle,YAW);
         if(angle-YAW>0)dif_r=abs(angle-YAW);
-        // else dif_l=abs(angle-YAW-360);
         dif_l=abs(angle-YAW-360);
         dif_l=dif_l>=360?dif_l-360:dif_l;
         if(dif_l>45)dif_l=0;
         if(dif_r>45)dif_r=0;
         //-15----15之间为正常，-45----15&&15----45之间回正
-        // dif_r=abs(angle-YAW);
         printf("\t\t\t\t\tdif_left:%d dif_right:%d\n",dif_l,dif_r);
         if(dif_l >= ANGLE) car_right(),osDelay(10);
         else if(dif_r >= ANGLE) car_left(),osDelay(10);
@@ -128,8 +125,6 @@ void waiting_degree(int temp){
     do
     {
         dif=abs(temp-YAW-360);
-        
-        // printf("\t\t\t\t",dif);
         if(dif>=360)
         {
             dif-=360;
@@ -143,12 +138,6 @@ void waiting_degree_right(int temp){
     do
     {
         dif=abs(temp-YAW);
-        
-        // printf("\t\t\t\t",dif);
-        // if(dif>=360)
-        // {
-        //     dif-=360;
-        // }
         printf("\t\t\t\tOrigin:%d After:%d dif:%d\n",temp,YAW,dif);
     }
     while(dif <= 85);
@@ -202,9 +191,6 @@ void control(){
         bool forward = true;
         bool right = true;
         ultrasonic();
-        // left_distance=get_left();
-        // mid_distance=get_mid();
-        // right_distance=get_right();
         osDelay(5);
     
         printf("left:%f mid:%f right:%f",left_distance,mid_distance,right_distance);
@@ -216,21 +202,17 @@ void control(){
         
         one_direct_distance();
         waiting();
-        // if(!flag)
-        // hi_sleep(3),flag=true;
         //打开只读前方距离
         if(left == true){
             printf("[times:%d]enter left!\n",times);
             //转弯操作分为两个步骤：1原地转 2向前一个单位
             //先进行转向
             int temp = get_YAW();
-            
             car_left();
             waiting_degree(temp);
             //再向前一个单位
             float temp1=m_distance;
             car_forward();
-            // temp = m_distance;
             printf("cur distance:%f",temp1);
             waiting_distance(temp1);
             car_stop(); 
@@ -249,12 +231,10 @@ void control(){
             //先进行转向
             car_right();
             int temp = get_YAW();
-            
             waiting_degree_right(temp);
             //再向前一个单位
             float temp1=m_distance;
             car_forward();
-            // temp = m_distance;
             printf("cur distance:%f",temp1);
             waiting_distance(temp1);
             car_stop();
@@ -272,67 +252,5 @@ void control(){
         }
         times++;
         osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
-        // three_direct_distance();//终止只读前方并启动读取三方距离
     }
 }
-
-// #include<stdbool.h>
-
-// extern float left_distance;
-// extern float mid_distance;
-// extern float right_distance;
-// extern float m_distance;
-
-// extern int YAM;
-
-// void waiting_distance(int temp){
-//     while(m_distance - temp >= 50);
-// }
-
-// void waiting_degree(int temp){
-//     while(abs(YAM - temp) <= 90);
-// }
-
-// void control(){
-
-//     while(true){
-//         bool left = true;
-//         bool forward = true;
-//         bool right = true;
-//         bool flag = true;
-
-//         //把float类型距离转化成布尔类型的值
-//         if(left_distance < 15) left = false;
-//         if(mid_distance < 15) forward = false;
-//         if(right_distance < 15) right = false;
-
-//         if(left == true){
-//             flag = true;
-//             car_left();
-//             int temp = YAM;
-//             waiting_degree(temp);
-//             car_stop();
-//         }
-//         //也可以尝试添加一个标志位判断是否进入死胡同 或者 支持调头的操作
-//         else if(forward == true && flag == true){
-//             car_forward();
-//             int temp = m_distance;
-//             waiting_distance(temp);
-//             car_stop();
-//         }
-//         else if(right == true){
-//             flag = true;
-//             car_right();
-//             int temp = YAM;
-//             waiting_degree(temp);
-//             car_stop();
-//         }
-//         else{
-//             flag = false;
-//             car_backward();
-//             int temp = m_distance;
-//             waiting_distance(temp);
-//             car_stop();
-//         }
-//     }
-// }

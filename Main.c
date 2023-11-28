@@ -34,7 +34,7 @@ void Thread_Ultrasonic()
 {
     while(1)
     {
-        ultrasonic();//返回的是左中右的距离,调用一次获取一次
+        ultrasonic();              //返回的是左中右的距离,调用一次获取一次
         osThreadYield();
     }
 }
@@ -49,39 +49,12 @@ void Thread_Ultrasonic_direct()
         osThreadYield();
     }
 }
-// void Thread_Control()
-// {
-//     control();
-// }
 
 static void Task(void)
 {
-    uint32_t count = 0;
-    uint32_t len = 0;
-
-
-    int status1,status2,status3;
-
-    // tid_GY25 = newThread("GY_25Thread",Thread_GY25,"GY-25 thread");
-
-    // tid_Ultrasonic = newThread("Ultrasonic Threaed",Thread_Ultrasonic,"Ultrasonic thread");
     control();
-    // tid_Control= newThread("Car Main Control function thread",Thread_Control,"Control Thread");
-    // printf("Thread Count:%d",osThreadGetCount());
-    // printf("Thread Enumerate Count:%d",osThreadEnumerate());
-    // osDelay(500);
     osDelay(10000000);
-    // status1=osThreadTerminate(tid_GY25);
-    // printf("[GY-25 thread]osThreadTerminate, status1: %d.\r\n", status1);
-    // status2=osThreadTerminate(tid_Ultrasonic);
-    // printf("[Ultrasonic thread]osThreadTerminate, status2: %d.\r\n", status2);
-    // status3=osThreadTerminate(tid_Control);
-    // printf("[Control Thread]osThreadTerminate, status2: %d.\r\n", status3);
-    printf("线程结束");
 }
-
-
-
 
 void Entry(void)
 {
