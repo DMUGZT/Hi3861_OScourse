@@ -16,6 +16,10 @@
 #define TASK_STAK_SIZE    (1024*10)
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 631cdb0 (local)
 extern float left_distance;
 extern float mid_distance;
 extern float right_distance;
@@ -253,4 +257,8 @@ void control(){
         times++;
         osStatus_t status1=osThreadTerminate(tid_Ultrasonic);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 631cdb0 (local)
